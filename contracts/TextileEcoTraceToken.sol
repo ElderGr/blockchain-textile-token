@@ -10,7 +10,7 @@ contract TextileEcoTraceToken is ERC20, Ownable {
         ERC20("TextileEcoTrace", "TET")
         Ownable()
     {
-        this.transferOwnership(initialOwner);
+        transferOwnership(initialOwner);
         _mint(msg.sender, initialSupply);
     }
 

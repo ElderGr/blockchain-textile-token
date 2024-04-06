@@ -1,4 +1,4 @@
-from brownie import accounts, config, TextileEcoTraceToken
+from brownie import accounts, TextileEcoTraceToken, TextileEcoTraceShop, TextileEcoTrace
 
 initial_supply = 100000000000000000000 
 
@@ -8,6 +8,15 @@ def main():
     erc20 = TextileEcoTraceToken.deploy(
         account,
         initial_supply, 
+        {"from": account}
+    )
+
+    TextileEcoTraceShop.deploy(
+        erc20,
+        {"from": account}
+    )
+    
+    TextileEcoTrace.deploy(
         {"from": account}
     )
     
