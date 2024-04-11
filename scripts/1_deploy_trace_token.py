@@ -10,13 +10,15 @@ def main():
         initial_supply, 
         {"from": account}
     )
-
     TextileEcoTraceShop.deploy(
         erc20,
         {"from": account}
     )
     
     TextileEcoTrace.deploy(
+        erc20,
         {"from": account}
     )
     
+    print('TokenShop ABI', TextileEcoTraceShop.abi)
+    print('TokenTrace ABI', TextileEcoTrace.abi)

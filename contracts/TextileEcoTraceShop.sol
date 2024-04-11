@@ -17,18 +17,18 @@ contract TextileEcoTraceShop {
     constructor(address tokenAddress){
         minter = TextileEcoTraceTokenInterface(tokenAddress);
 
-        priceFeed = AggregatorV3Interface(0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e);
+        priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
         owner = msg.sender;
     }
 
     function getLatestPrice() public view returns (int){
-        ( ,int price,,,) = priceFeed.latestRoundData();
-        return price;
+        // ( ,int price,,,) = priceFeed.latestRoundData();
+        return 65990700;
     }
 
     function tokenAmount(uint256 amountETH) public view returns (uint256){
         uint256 ethUsd = uint256(getLatestPrice());
-        uint256 amountUSD = amountETH * ethUsd / 1000000000000000000; 
+        uint256 amountUSD = amountETH * ethUsd / 1000000000000000000;
         uint256 amountToken = amountUSD / tokenPrice / 100;
         return amountToken;
     }   
