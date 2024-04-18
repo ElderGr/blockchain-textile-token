@@ -10,15 +10,19 @@ def main():
         initial_supply, 
         {"from": account}
     )
-    TextileEcoTraceShop.deploy(
+    tokenShop = TextileEcoTraceShop.deploy(
         erc20,
         {"from": account}
     )
     
-    TextileEcoTrace.deploy(
+    trace = TextileEcoTrace.deploy(
         erc20,
         {"from": account}
     )
+
+    token_amount_to_approve = 100000000000000000000
+    erc20.approve(tokenShop.address, token_amount_to_approve, {"from": account})
+    erc20.approve(trace.address, token_amount_to_approve, {"from": account})
     
     print('TokenShop ABI', TextileEcoTraceShop.abi)
     print('TokenTrace ABI', TextileEcoTrace.abi)
