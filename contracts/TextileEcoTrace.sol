@@ -5,31 +5,37 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface ITextileEcoTraceShop {
+    function getLatestPrice() external view returns (int);
+    function tokenAmount(uint256 amountETH) external view returns (uint256);
+}
+
 contract TextileEcoTrace is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
     IERC20 public textileEcoTraceToken;
+    ITextileEcoTraceShop public textileEcoTraceShop;
         
-    struct Certificate {
-        uint256 id;
-        string code;
-        string type;
-    }
-
     struct ProductInfo {
         uint256 id;
         string sku;
         string name;
-        string composition;
-        Certificate[] certificates;
+        string[] compositions;
+        string[] certificates; 
         string manufacturingDate;
     }
 
+    uint256 public constant tokenCreationFee = 0.01 ether;
+
     mapping(uint256 => ProductInfo) public productInfo;
 
-    constructor(address _textileEcoTraceToken) ERC721("TextileEcoTraceNFT", "TET") {
+    constructor(
+        address _textileEcoTraceToken, 
+        address _textileEcoTraceShop
+    ) ERC721("TextileEcoTraceNFT", "TET") {
         textileEcoTraceToken = IERC20(_textileEcoTraceToken);
+        textileEcoTraceShop = ITextileEcoTraceShop(_textileEcoTraceShop);
     }
 
     function createProduct(
@@ -37,12 +43,14 @@ contract TextileEcoTrace is ERC721URIStorage {
         string memory sku,
         string memory name,
         string[] memory compositions, 
-        Certificate[] memory initialCertificates,
+        string[] memory initialCertificates,
         string memory manufacturingDate,
-        string memory tokenURI,
-        uint256 tokenAmount
+        string memory tokenURI
     ) public returns (uint256) {
-        require(textileEcoTraceToken.transferFrom(msg.sender, address(this), tokenAmount), "Token transfer failed");
+        uint256 tokensRequired = textileEcoTraceShop.tokenAmount(tokenCreationFee);
+
+        require(textileEcoTraceToken.balanceOf(msg.sender) >= tokensRequired, "Insufficient token balance");
+        require(textileEcoTraceToken.transferFrom(msg.sender, address(this), tokensRequired), "Token transfer failed");
 
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
@@ -54,28 +62,15 @@ contract TextileEcoTrace is ERC721URIStorage {
         return newItemId;
     }
 
-    function removeCertificate(uint256 tokenId, uint256 certificateId) public {
+    function removeCertificate(uint256 tokenId, uint256 certificateIndex) public {
         require(_exists(tokenId), "ProductManagement: Query for nonexistent token");
         require(ownerOf(tokenId) == msg.sender, "Caller is not the owner");
+        require(certificateIndex < productInfo[tokenId].certificates.length, "Certificate index out of bounds");
 
         ProductInfo storage product = productInfo[tokenId];
-        uint256 indexToRemove = 0;
-        bool found = false;
-
-        for (uint256 i = 0; i < product.certificates.length; i++) {
-            if (product.certificates[i].id == certificateId) {
-                indexToRemove = i;
-                found = true;
-                break;
-            }
-        }
-
-        require(found, "Certificate not found");
-
-        product.certificates[indexToRemove] = product.certificates[product.certificates.length - 1];
+        product.certificates[certificateIndex] = product.certificates[product.certificates.length - 1];
         product.certificates.pop();
     }
-
 
     function addCertificates(uint256 tokenId, string[] memory newCertificates) public {
         require(_exists(tokenId), "ProductManagement: Query for nonexistent token");
@@ -104,5 +99,4 @@ contract TextileEcoTrace is ERC721URIStorage {
 
         return products;
     }
-
 }
